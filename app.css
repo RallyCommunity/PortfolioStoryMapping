@@ -1,4 +1,9 @@
 .app {
-     /* Add app styles here */
+     margin: 20px;
+}
+
+.swim-lanes-container {
+	padding-top:15px;
+	border-top:1px solid #eeeeee;
 }
 

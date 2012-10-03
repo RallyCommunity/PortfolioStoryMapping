@@ -10,21 +10,19 @@ Ext.define('CustomApp', {
     componentCls: 'app',
 
 	_onEpicSelected: function(combo) {
-		console.log('selected...')
-
+		this.swimLanes.removeAll();
 		Ext.Array.each(combo.getRecord().get('Children'), function(child) {
 			this._buildSwimLaneFor(child);
 		}, this);
 	},
 
 	_buildSwimLaneFor: function(child) {
-		console.log('adding swim lane for ' + child._ref);
 		var itemConfig = {
 			xtype: 'panel',
 			title: child._refObjectName
 		};
 
-		this.add(itemConfig);
+		this.swimLanes.add(itemConfig);
 	},
 
     launch: function() {
@@ -43,5 +41,10 @@ Ext.define('CustomApp', {
 	        	scope: this
 	        },	
 	    });
+
+    	this.swimLanes = this.add({
+    		xtype:'container',
+    		componentCls: 'swim-lanes-container'
+    	});
     }
 });
