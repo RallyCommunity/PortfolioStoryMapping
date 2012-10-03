@@ -1,17 +1,30 @@
 //2677739417d - Machine Controls Project OID
+var globalContext = {
+	project: '/project/2677739417',
+	projectScopeUp: false,
+	projectScopeDown: true
+}
 
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
 
-	items: [
-		
-	],
-
 	_onEpicSelected: function(combo) {
-		var epicRef = combo.getRecord().get('_ref');
+		console.log('selected...')
 
-		
+		Ext.Array.each(combo.getRecord().get('Children'), function(child) {
+			this._buildSwimLaneFor(child);
+		}, this);
+	},
+
+	_buildSwimLaneFor: function(child) {
+		console.log('adding swim lane for ' + child._ref);
+		var itemConfig = {
+			xtype: 'panel',
+			title: child._refObjectName
+		};
+
+		this.add(itemConfig);
 	},
 
     launch: function() {
@@ -22,11 +35,7 @@ Ext.define('CustomApp', {
 	        storeConfig: {
 	        	autoLoad: true,
 	            model: 'portfolioitem/epic',
-	            context: {
-	            	project: '/project/2677739417',
-					projectScopeUp: false,
-        			projectScopeDown: true
-	            }
+	            context: globalContext
 	        },
 	        listeners: {
 				select: this._onEpicSelected,
