@@ -28,7 +28,10 @@ Ext.define('CustomApp', {
     launch: function() {
         this.add({
 	        xtype: 'rallycombobox',
-	        fieldLabel: 'Epix',
+	        fieldLabel: 'Pick Parent Epix:',
+	        labelCls: 'epic-label',
+	        labelWidth: '175px',
+	        grow: true,
 	        autoSelect: true,
 	        storeConfig: {
 	        	autoLoad: true,

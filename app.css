@@ -7,3 +7,8 @@
 	border-top:1px solid #eeeeee;
 }
 
+.epic-label {
+	font-size:1.5em;
+	font-weight:bold;
+	width:250px;
+}
