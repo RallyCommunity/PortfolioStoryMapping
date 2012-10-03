@@ -1,3 +1,6 @@
-*debug.html
-/App.html
-.*
+# Ignore login credentials
+deploy.json
+# Ignore debug build version of App
+App-debug.html
+# Ignore 'local' build version of App
+App-local.html

@@ -1,0 +1,12 @@
+{
+    "name": "StoryMapping",
+    "className": "CustomApp",
+    "server": "https://hackathon.rallydev.com",
+    "sdk": "2.0p4",
+    "javascript": [
+        "App.js"
+    ],
+    "css": [
+        "app.css"
+    ]
+}

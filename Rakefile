@@ -9,7 +9,7 @@ task :default => [:debug, :build]
 
 desc "Create an app with the provided name (and optional SDK version and rally server)"
 task :new, :app_name, :sdk_version, :server do |t, args|
-  args.with_defaults(:sdk_version => "2.0p4", :server => "https://rally1.rallydev.com")
+  args.with_defaults(:sdk_version => "2.0p4", :server => "https://hackathon.rallydev.com")
   Dir.chdir(Rake.original_dir)
 
   server = set_https(args[:server])
