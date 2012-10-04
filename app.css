@@ -13,8 +13,15 @@
 	width:250px;
 }
 
+.swim-lane-panel {
+}
+
 .swimlane-board .column .columnContent {
 	min-height: 0
+}
+
+.hide-columns .columnContent {
+	display:none;
 }
 
 .hide-header .column .columnHeader {
@@ -24,7 +31,6 @@
 .lefty {
 	float:left;
 	width:15%;
-	min-width: 300px;
 	min-height: 600px;
 }
 
@@ -37,3 +43,8 @@
 	width:85%;
 	min-height: 600px;
 }
+
+.card-selected {
+	border: 3px solid #00ee11;
+}
+

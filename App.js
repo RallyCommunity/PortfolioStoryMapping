@@ -49,7 +49,7 @@ Ext.define('CustomApp', {
 	},
 
 	_createEpicPickList: function(epicTypeDef, onSelect) {
-		return Ext.create('Rally.ui.cardboard.CardBoard', {
+		var board =  Ext.create('Rally.ui.cardboard.CardBoard', {
 	    		types: ['portfolioitem/epic'],
 	    		attribute: ['PortfolioItemType'],
 				cardConfig: {
@@ -69,7 +69,13 @@ Ext.define('CustomApp', {
 				],
 				cardConfig: {
 					listeners: {
-						select: onSelect
+						deselect: function(card) {
+							card.removeCls('card-selected');
+						},
+						select: function(card)  {
+							card.addCls('card-selected');
+							onSelect(card);
+						}
 					}
 				},
 				storeConfig: {
@@ -77,6 +83,7 @@ Ext.define('CustomApp', {
 					context: globalContext
 				}
 	    	});
+		return board;
 	},
 
 	_wrapInContainer: function(component, cls) {
@@ -100,8 +107,7 @@ Ext.define('CustomApp', {
 	_onEpicSelected: function(epicCard) {
 		this.right.removeAll();
 
-		var mmfs = epicCard.getRecord().get('Children');
-
+		var mmfs = this._getSortedMmfs(epicCard.getRecord().get('Children'));
 		if(mmfs.length === 0) {
 			//ToDo: Display "has no MMFs message"
 			return;
@@ -109,17 +115,55 @@ Ext.define('CustomApp', {
 
 		var me = this;
 		this._getAllFeatures(mmfs, function(features) {
-			me._getUniqueAttributeValues(features, 'Theme', function(uniqueThemes) {
-				me._buildSwimLanesFor(mmfs, uniqueThemes);
+			var filteredFeatures = me._getFeaturesInsideEpicScope(mmfs, features);
+
+			me._getUniqueAttributeValues(filteredFeatures, 'Theme', function(uniqueThemes) {
+				var sortedThemes = Ext.Array.sort(uniqueThemes);
+				me._addAddNewFeature();
+				me._buildCardBoardHeader(sortedThemes);
+				me._buildSwimLanesFor(mmfs, sortedThemes);
 			});
 		}); 
 	},
+
+	_getSortedMmfs: function(mmfs) {
+		return Ext.Array.sort(mmfs, function(left, right) {
+			return left.Rank > right.Rank;
+		})
+	},
+
+	_getFeaturesInsideEpicScope: function(mmfs, features) {
+		var mmfRefs = Ext.Array.pluck(mmfs, '_ref');
+		return Ext.Array.filter(features, function(feature) {
+			return Ext.Array.contains(mmfRefs, feature.get('Parent')._ref);
+		});
+	},
+
+	_addAddNewFeature: function() {
+		this.right.add(
+			Ext.create('Ext.Container', {
+			    items: 
+			    	[
+			    		{
+					        xtype: 'rallyaddnew',
+					        recordTypes: ['portfolioitem/feature'],
+					        newButtonText: 'Add New Feature',
+					        fieldLabel: 'New Feature',
+					        showAddWithDetails: false, 
+					        listeners: {
+					            add: function(addNew, result) {
+					                //Ext.Msg.alert('Add New', 'Added record named ' + result.record.get('Name'));
+				            	}
+				            }
+				        }
+				    ]			    
+			})
+		);
+	},
      
 	_buildSwimLanesFor: function(mmfs, themes) {
-		var showHeaders = true;
 		Ext.Array.each(mmfs, function(mmf) {
-			this._buildSwimLaneFor(mmf, themes, showHeaders);
-			showHeaders = false;
+			this._buildSwimLaneFor(mmf, themes);
 		}, this);
 	},
 
@@ -140,7 +184,7 @@ Ext.define('CustomApp', {
 	_getAllFeatures: function(mmfs, callback) {
 		Ext.create('Rally.data.WsapiDataStore', {
 			autoLoad: true,
-			fetch: ['Theme'],
+			fetch: ['Theme', 'Parent'],
 			model: 'portfolioitem/feature',
 			context: globalContext,
 			listeners: {
@@ -151,16 +195,36 @@ Ext.define('CustomApp', {
 		});
 	},
 
-	_buildSwimLaneFor: function(mmf, themes, showHeaders) {
+	_buildCardBoardHeader: function(themes) {
+		var cardboard = Ext.create('Rally.ui.cardboard.CardBoard', {			
+			componentCls: 'swimlane-board hide-columns',
+			attribute: 'Theme',
+			columns: this._createColumns(themes, false),
+			cardConfig: {
+				editable: true,
+				showHeaderMenu: true
+			},
+		});		
+
+		this.right.add(cardboard);
+	},
+
+	_buildSwimLaneFor: function(mmf, themes) {
 		var swimLanePanel = Ext.create('Ext.panel.Panel', {
-			title: mmf._refObjectName
+			title: '<a href="' + mmf._ref + '">' + mmf.FormattedID + ' - ' + mmf._refObjectName + '</a>',
+			componentCls: 'swim-lane-panel',
+			border: false
+		});
+
+		var container = Ext.create('Ext.container.Container', {
+			border: true
 		});
 
 		var cardboard = Ext.create('Rally.ui.cardboard.CardBoard', {			
-			componentCls: 'swimlane-board' + (showHeaders ? '' : ' hide-header'),
+			componentCls: 'swimlane-board hide-header',
 			types: ['portfolioitem/feature'],
 			attribute: 'Theme',
-			columns: this._createColumns(themes),
+			columns: this._createColumns(themes, true),
 			cardConfig: {
 				editable: true,
 				showHeaderMenu: true
@@ -183,7 +247,8 @@ Ext.define('CustomApp', {
 			}
 		});
 
-		swimLanePanel.add(cardboard);
+		container.add(cardboard);
+		swimLanePanel.add(container);
 		this.right.add(swimLanePanel);
 	},
 
