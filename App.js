@@ -14,12 +14,14 @@ Ext.define('CustomApp', {
 			componentCls: 'inner'
 		});
 
-    	this.right =  Ext.create('Ext.container.Container', {
+    	this.right = Ext.create('Ext.container.Container', {
 	    	componentCls: 'inner'
 		});
 
 		this.add(this._wrapInContainer(this.left, 'lefty'));
 		this.add(this._wrapInContainer(this.right, 'righty'));
+
+		this._showDefaultMessage();
 
     	var me = this;
     	this._loadEpicTypeDefinition(function(epicTypeDef) {
@@ -139,7 +141,7 @@ Ext.define('CustomApp', {
 		});
 	},
 
-	_addAddNewFeature: function(parent, project) {
+	_addAddNewFeature: function(parent) {
 		this.right.add(
 			Ext.create('Rally.ui.AddNew', {
 		        recordTypes: ['portfolioitem/feature'],
@@ -149,8 +151,9 @@ Ext.define('CustomApp', {
 		        showAddWithDetails: false,     
 		        listeners: {
 		        	beforecreate: function(component, record, operation, options) {
+
 		        		record.set('Parent', parent);
-		        		record.set('Project', globalContext.project);
+		        		record.set('Project', globalContext ? globalContext.project : this.getContext().getProject());
 		        		record.set('Theme', '');
 		        	},
 		            create: function(component, record, operation, options) {		
@@ -169,7 +172,8 @@ Ext.define('CustomApp', {
 		            			}
 		            		}
 		            	});
-	            	}
+	            	},
+	            	scope:this
 	            }
 			})
 		);
@@ -280,5 +284,14 @@ Ext.define('CustomApp', {
 		});
 
 		return Ext.Array.union([noEntryColumn], columns);
+	},
+
+	_showDefaultMessage: function() {
+		this.right.add(
+			Ext.create('Ext.draw.Text', {
+				componentCls: 'help-text',
+            	text: 'Please select an epic.'
+	    	})
+		);
 	}	
 });
