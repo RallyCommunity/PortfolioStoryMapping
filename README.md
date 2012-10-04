@@ -9,11 +9,11 @@ This app is intended for use during portfolio story mapping sessions and as a vi
 * The presence of a custom text field called Theme
 
 ## Demo Link
-http://screencast.com/t/xPEpCDvv7Bzn
+http://screencast.com/t/1YX7JuJANz2
 
 ## Screenshot Link
 http://screencast.com/t/nVgh4v0CqrWP
+http://screencast.com/t/xPEpCDvv7Bzn
 
 ## License
-
 AppTemplate is released under the MIT license.  See the file [LICENSE](https://raw.github.com/RallyApps/AppTemplate/master/LICENSE) for the full text.
