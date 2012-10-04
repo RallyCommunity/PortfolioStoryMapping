@@ -56,7 +56,7 @@ Ext.define('CustomApp', {
 			Ext.Array.map(features, function(feature) { return feature.get('Theme'); })
 		);
 
-		callback(uniqueThemes);
+		callback(Ext.Array.remove(uniqueThemes, ''));
 	},
 
 	_getAllFeatures: function(mmfs, callback) {
@@ -78,15 +78,53 @@ Ext.define('CustomApp', {
 			title: mmf._refObjectName
 		});
 
-		console.log(mmf);
-		console.log(features);
-		console.log(themes);
+		var cardboard = Ext.create('Rally.ui.cardboard.CardBoard', {			
+			types: [features[0].get('_type')],
+			attribute: 'Theme',
+			columns: this._createColumns(themes),
+			columnConfig: {
+				xtype: 'rallykanbancolumn',
+			},
+			cardConfig: {
+				xtype: 'rallycard',
+				editable: true,
+				showHeaderMenu: true,
+			},
+			storeConfig: {
+				autoLoad: true,
+				context: globalContext,
+				filters: [
+					{
+						property: 'Parent',
+						value: mmf._ref
+					},
+					{
+						property: 'PortfolioItemType',
+						value: features[0].get('PortfolioItemType')._ref
+					}
+				]
+			},
 
+		});
+
+		swimLanePanel.add(cardboard);
 		this.swimLanes.add(swimLanePanel);
 	},
 
-	_createCardboard: function(store, records) {
-		console.log(records);
+	_createColumns: function(themes) {
+		var noEntryColumn = {
+			displayValue: 'No Entry',
+			value: ''
+		};
+
+		var columns = Ext.Array.map(themes, function(theme) {
+			return {
+				displayValue: theme,
+				value: theme,				
+			};
+		});
+
+		return Ext.Array.union([noEntryColumn], columns);
 	},
 
     launch: function() {
