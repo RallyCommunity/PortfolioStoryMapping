@@ -1,6 +1,6 @@
 //2677739417d - Machine Controls Project OID
 var globalContext = {
-	project: '/project/2677739417',
+	project: '/project/9001834352',
 	projectScopeUp: false,
 	projectScopeDown: true
 }
@@ -11,18 +11,82 @@ Ext.define('CustomApp', {
 
 	_onEpicSelected: function(combo) {
 		this.swimLanes.removeAll();
-		Ext.Array.each(combo.getRecord().get('Children'), function(child) {
-			this._buildSwimLaneFor(child);
+
+		var mmfs = combo.getRecord().get('Children');
+
+		if(mmfs.length === 0) {
+			//ToDo: Display "has no MMFs message"
+			return;
+		}
+
+		var me = this;
+		this._getAllFeatures(mmfs, function(features) { 
+			me._getAllThemesFromFeatures(features, function(uniqueThemes) {
+				me._buildSwimLanesFor(mmfs, features, uniqueThemes);
+			});
+		}); 
+	},
+     
+	_buildSwimLanesFor: function(mmfs, features, themes) {
+		var featureMap = this._toLookup(features, function(feature) {
+			return feature.get('Parent')._ref;
+		});
+
+		Ext.Array.each(mmfs, function(mmf) {
+			this._buildSwimLaneFor(mmf, featureMap[mmf._ref], themes);
 		}, this);
 	},
 
-	_buildSwimLaneFor: function(child) {
-		var itemConfig = {
-			xtype: 'panel',
-			title: child._refObjectName
-		};
+	_toLookup: function(array, keyExtractor) {
+		var lookup = {};
 
-		this.swimLanes.add(itemConfig);
+		Ext.Array.each(array, function(item) {
+			var key = keyExtractor(item).toString();
+			if(!lookup[key]) {
+				lookup[key] = [];
+			}
+			lookup[key].push(item);
+		});
+
+		return lookup;
+	},
+
+	_getAllThemesFromFeatures: function(features, callback) {
+		var uniqueThemes = Ext.Array.unique(
+			Ext.Array.map(features, function(feature) { return feature.get('Theme'); })
+		);
+
+		callback(uniqueThemes);
+	},
+
+	_getAllFeatures: function(mmfs, callback) {
+		Ext.create('Rally.data.WsapiDataStore', {
+			autoLoad: true,
+			fetch: true,
+			model: 'portfolioitem/feature',
+			context: globalContext,
+			listeners: {
+				load: function(store, records) { 
+					callback(records); 
+				}
+			}
+		});
+	},
+
+	_buildSwimLaneFor: function(mmf, features, themes) {
+		var swimLanePanel = Ext.create('Ext.panel.Panel', {
+			title: mmf._refObjectName
+		});
+
+		console.log(mmf);
+		console.log(features);
+		console.log(themes);
+
+		this.swimLanes.add(swimLanePanel);
+	},
+
+	_createCardboard: function(store, records) {
+		console.log(records);
 	},
 
     launch: function() {
