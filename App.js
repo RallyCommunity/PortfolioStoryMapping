@@ -9,10 +9,98 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
 
-	_onEpicSelected: function(combo) {
-		this.swimLanes.removeAll();
+    launch: function() {
+    	this.left = Ext.create('Ext.container.Container', {
+			componentCls: 'inner'
+		});
 
-		var mmfs = combo.getRecord().get('Children');
+    	this.right =  Ext.create('Ext.container.Container', {
+	    	componentCls: 'inner'
+		});
+
+		this.add(this._wrapInContainer(this.left, 'lefty'));
+		this.add(this._wrapInContainer(this.right, 'righty'));
+
+    	var me = this;
+    	this._loadEpicTypeDefinition(function(epicTypeDef) {
+	    	me.left.add(
+	    		me._createEpicPickList(epicTypeDef, Ext.bind(me._onEpicSelected, me))
+			);		
+    	});
+    },
+
+	_loadEpicTypeDefinition: function(callback) {
+    	var typeDefinitionStore = Ext.create('Rally.data.WsapiDataStore', {
+    		model: 'TypeDefinition',
+    		context: globalContext,
+    		autoLoad: true,
+    		filters: [
+    			{
+    				property: 'TypePath',
+    				value: 'PortfolioItem/Epic'
+    			}
+    		],
+    		listeners: {
+    			load: function(store, records) {
+    				callback(records[0]);
+    			}
+    		}
+    	});
+	},
+
+	_createEpicPickList: function(epicTypeDef, onSelect) {
+		return Ext.create('Rally.ui.cardboard.CardBoard', {
+	    		types: ['portfolioitem/epic'],
+	    		attribute: ['PortfolioItemType'],
+				cardConfig: {
+					editable: true,
+					showHeaderMenu: true
+				},
+				columns: [
+					{
+						displayValue: 'Epics',
+						value: epicTypeDef.get('_ref'),				
+						storeConfig: {
+							autoLoad: true,
+							model: 'portfolioitem/epic',
+							context: globalContext
+						}
+					}
+				],
+				cardConfig: {
+					listeners: {
+						select: onSelect
+					}
+				},
+				storeConfig: {
+					fetch: ['Children'],
+					context: globalContext
+				}
+	    	});
+	},
+
+	_wrapInContainer: function(component, cls) {
+		var wrapper = Ext.create('Ext.container.Container', {
+    		componentCls: cls
+    	});
+
+    	wrapper.add(component);
+
+    	return wrapper;
+	},
+
+	_getUniqueAttributeValues: function(objects, attribute, callback){
+		var uniqueValues = Ext.Array.unique(
+			Ext.Array.map(objects, function(objects) { return objects.get(attribute); })
+		);
+
+		callback(Ext.Array.remove(uniqueValues, ''));
+	},
+
+	_onEpicSelected: function(epicCard) {
+		this.right.removeAll();
+
+		var mmfs = epicCard.getRecord().get('Children');
 
 		if(mmfs.length === 0) {
 			//ToDo: Display "has no MMFs message"
@@ -20,8 +108,8 @@ Ext.define('CustomApp', {
 		}
 
 		var me = this;
-		this._getAllFeatures(mmfs, function(features) { 
-			me._getAllThemesFromFeatures(features, function(uniqueThemes) {
+		this._getAllFeatures(mmfs, function(features) {
+			me._getUniqueAttributeValues(features, 'Theme', function(uniqueThemes) {
 				me._buildSwimLanesFor(mmfs, uniqueThemes);
 			});
 		}); 
@@ -47,14 +135,6 @@ Ext.define('CustomApp', {
 		});
 
 		return lookup;
-	},
-
-	_getAllThemesFromFeatures: function(features, callback) {
-		var uniqueThemes = Ext.Array.unique(
-			Ext.Array.map(features, function(feature) { return feature.get('Theme'); })
-		);
-
-		callback(Ext.Array.remove(uniqueThemes, ''));
 	},
 
 	_getAllFeatures: function(mmfs, callback) {
@@ -85,8 +165,6 @@ Ext.define('CustomApp', {
 				editable: true,
 				showHeaderMenu: true
 			},
-			columnConfig: {
-			},
 			storeConfig: {
 				autoLoad: true,
 				context: globalContext,
@@ -106,7 +184,7 @@ Ext.define('CustomApp', {
 		});
 
 		swimLanePanel.add(cardboard);
-		this.swimLanes.add(swimLanePanel);
+		this.right.add(swimLanePanel);
 	},
 
 	_createColumns: function(themes) {
@@ -123,31 +201,5 @@ Ext.define('CustomApp', {
 		});
 
 		return Ext.Array.union([noEntryColumn], columns);
-	},
-
-    launch: function() {
-        this.add({
-	        xtype: 'rallycombobox',
-	        fieldLabel: 'Pick Parent Epix:',
-	        labelCls: 'epic-label',
-	        labelWidth: '175px',
-	        grow: true,
-	        autoSelect: true,
-	        storeConfig: {
-	        	autoLoad: true,
-	            model: 'portfolioitem/epic',
-	            context: globalContext
-	        },
-	        listeners: {
-				select: this._onEpicSelected,
-				ready: this._onEpicSelected,
-	        	scope: this
-	        },	
-	    });
-
-    	this.swimLanes = this.add({
-    		xtype:'container',
-    		componentCls: 'swim-lanes-container'
-    	});
-    }
+	}
 });
