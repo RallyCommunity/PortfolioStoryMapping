@@ -128,7 +128,7 @@
             
             			me._getUniqueAttributeValues(filteredFeatures, 'Theme', function(uniqueThemes) {
             				var sortedThemes = Ext.Array.sort(uniqueThemes);
-            				me._addAddNewFeature();
+            				me._addAddNewFeature(mmfs[0]);
             				me._buildCardBoardHeader(sortedThemes);
             				me._buildSwimLanesFor(mmfs, sortedThemes);
             			});
@@ -148,24 +148,38 @@
             		});
             	},
             
-            	_addAddNewFeature: function() {
+            	_addAddNewFeature: function(parent, project) {
             		this.right.add(
-            			Ext.create('Ext.Container', {
-            			    items: 
-            			    	[
-            			    		{
-            					        xtype: 'rallyaddnew',
-            					        recordTypes: ['portfolioitem/feature'],
-            					        newButtonText: 'Add New Feature',
-            					        fieldLabel: 'New Feature',
-            					        showAddWithDetails: false, 
-            					        listeners: {
-            					            add: function(addNew, result) {
-            					                //Ext.Msg.alert('Add New', 'Added record named ' + result.record.get('Name'));
-            				            	}
-            				            }
-            				        }
-            				    ]			    
+            			Ext.create('Rally.ui.AddNew', {
+            		        recordTypes: ['portfolioitem/feature'],
+            		        ignoredRequiredFields: ['Creation Date', 'Name', 'FormattedID', 'PortfolioItemType', 'Project'],
+            		        newButtonText: 'Add New Feature',
+            		        fieldLabel: 'New Feature',		
+            		        showAddWithDetails: false,     
+            		        listeners: {
+            		        	beforecreate: function(component, record, operation, options) {
+            		        		record.set('Parent', parent);
+            		        		record.set('Project', globalContext.project);
+            		        		record.set('Theme', '');
+            		        	},
+            		            create: function(component, record, operation, options) {		
+            		            	Ext.create('Rally.data.WsapiDataStore', {
+            		            		context: globalContext,
+            		            		autoLoad: true,
+            		            		model: 'portfolioitem/feature',
+            		            		fetch: true,
+            		            		filters: [{
+            		            			property: 'ObjectID',
+            		            			value: record.get('ObjectID')
+            		            		}],
+            		            		listeners: {
+            		            			load: function(store, records) {
+            					            	Rally.environment.getMessageBus().publish(Rally.Message.objectCreate, records[0]);
+            		            			}
+            		            		}
+            		            	});
+            	            	}
+            	            }
             			})
             		);
             	},
@@ -275,7 +289,7 @@
             		});
             
             		return Ext.Array.union([noEntryColumn], columns);
-            	}
+            	}	
             });
 
             Rally.launchApp('CustomApp', {
