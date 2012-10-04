@@ -11,6 +11,9 @@ This app is intended for use during portfolio story mapping sessions and as a vi
 ## Demo Link
 http://screencast.com/t/xPEpCDvv7Bzn
 
+## Screenshot Link
+http://screencast.com/t/nVgh4v0CqrWP
+
 ## License
 
 AppTemplate is released under the MIT license.  See the file [LICENSE](https://raw.github.com/RallyApps/AppTemplate/master/LICENSE) for the full text.
