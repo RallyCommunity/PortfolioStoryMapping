@@ -12,3 +12,11 @@
 	font-weight:bold;
 	width:250px;
 }
+
+.swimlane-board .column .columnContent {
+	min-height: 0
+}
+
+.hide-header .column .columnHeader {
+	display: none;
+}

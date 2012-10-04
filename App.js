@@ -32,8 +32,10 @@ Ext.define('CustomApp', {
 			return feature.get('Parent')._ref;
 		});
 
+		var showHeaders = true;
 		Ext.Array.each(mmfs, function(mmf) {
-			this._buildSwimLaneFor(mmf, featureMap[mmf._ref], themes);
+			this._buildSwimLaneFor(mmf, featureMap[mmf._ref], themes, showHeaders);
+			showHeaders = false;
 		}, this);
 	},
 
@@ -73,20 +75,17 @@ Ext.define('CustomApp', {
 		});
 	},
 
-	_buildSwimLaneFor: function(mmf, features, themes) {
+	_buildSwimLaneFor: function(mmf, features, themes, showHeaders) {
 		var swimLanePanel = Ext.create('Ext.panel.Panel', {
 			title: mmf._refObjectName
 		});
 
 		var cardboard = Ext.create('Rally.ui.cardboard.CardBoard', {			
+			componentCls: 'swimlane-board' + (showHeaders ? '' : ' hide-header'),
 			types: [features[0].get('_type')],
 			attribute: 'Theme',
 			columns: this._createColumns(themes),
-			columnConfig: {
-				xtype: 'rallykanbancolumn',
-			},
 			cardConfig: {
-				xtype: 'rallycard',
 				editable: true,
 				showHeaderMenu: true,
 			},
@@ -104,7 +103,6 @@ Ext.define('CustomApp', {
 					}
 				]
 			},
-
 		});
 
 		swimLanePanel.add(cardboard);
@@ -120,7 +118,7 @@ Ext.define('CustomApp', {
 		var columns = Ext.Array.map(themes, function(theme) {
 			return {
 				displayValue: theme,
-				value: theme,				
+				value: theme
 			};
 		});
 
