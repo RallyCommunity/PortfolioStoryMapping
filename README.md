@@ -9,10 +9,9 @@ This app is intended for use during portfolio story mapping sessions and as a vi
 * The presence of a custom text field called Theme
 
 ## Demo Link
-http://screencast.com/t/1YX7JuJANz2
+http://screencast.com/t/sIySruA1NOMJ
 
 ## Screenshot Link
-http://screencast.com/t/nVgh4v0CqrWP
 http://screencast.com/t/xPEpCDvv7Bzn
 
 ## License
