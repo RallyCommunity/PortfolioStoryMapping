@@ -22,19 +22,15 @@ Ext.define('CustomApp', {
 		var me = this;
 		this._getAllFeatures(mmfs, function(features) { 
 			me._getAllThemesFromFeatures(features, function(uniqueThemes) {
-				me._buildSwimLanesFor(mmfs, features, uniqueThemes);
+				me._buildSwimLanesFor(mmfs, uniqueThemes);
 			});
 		}); 
 	},
      
-	_buildSwimLanesFor: function(mmfs, features, themes) {
-		var featureMap = this._toLookup(features, function(feature) {
-			return feature.get('Parent')._ref;
-		});
-
+	_buildSwimLanesFor: function(mmfs, themes) {
 		var showHeaders = true;
 		Ext.Array.each(mmfs, function(mmf) {
-			this._buildSwimLaneFor(mmf, featureMap[mmf._ref], themes, showHeaders);
+			this._buildSwimLaneFor(mmf, themes, showHeaders);
 			showHeaders = false;
 		}, this);
 	},
@@ -64,7 +60,7 @@ Ext.define('CustomApp', {
 	_getAllFeatures: function(mmfs, callback) {
 		Ext.create('Rally.data.WsapiDataStore', {
 			autoLoad: true,
-			fetch: true,
+			fetch: ['Theme'],
 			model: 'portfolioitem/feature',
 			context: globalContext,
 			listeners: {
@@ -75,34 +71,38 @@ Ext.define('CustomApp', {
 		});
 	},
 
-	_buildSwimLaneFor: function(mmf, features, themes, showHeaders) {
+	_buildSwimLaneFor: function(mmf, themes, showHeaders) {
 		var swimLanePanel = Ext.create('Ext.panel.Panel', {
 			title: mmf._refObjectName
 		});
 
 		var cardboard = Ext.create('Rally.ui.cardboard.CardBoard', {			
 			componentCls: 'swimlane-board' + (showHeaders ? '' : ' hide-header'),
-			types: [features[0].get('_type')],
+			types: ['portfolioitem/feature'],
 			attribute: 'Theme',
 			columns: this._createColumns(themes),
 			cardConfig: {
 				editable: true,
-				showHeaderMenu: true,
+				showHeaderMenu: true
+			},
+			columnConfig: {
 			},
 			storeConfig: {
 				autoLoad: true,
 				context: globalContext,
+				fetch: ['Parent'],
 				filters: [
 					{
 						property: 'Parent',
 						value: mmf._ref
-					},
-					{
-						property: 'PortfolioItemType',
-						value: features[0].get('PortfolioItemType')._ref
 					}
 				]
 			},
+			listeners: {
+				beforecarddroppedsave: function(targetColumn, card) {
+					card.getRecord().set('Parent', mmf);
+				}
+			}
 		});
 
 		swimLanePanel.add(cardboard);
